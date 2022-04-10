@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "950321930285",
+    "project_id": "card-digital-93290",
+    "storage_bucket": "card-digital-93290.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:950321930285:android:7d887ad45c8cbbdac758a4",
+        "android_client_info": {
+          "package_name": "com.example.digitalcard"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "950321930285-871obaml88roruhufj8l4clfo0d149db.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBtqO4rNkW4ZQrf3Qd5Nza8DJT0RjX2Ejw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "950321930285-871obaml88roruhufj8l4clfo0d149db.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
