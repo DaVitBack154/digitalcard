@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:digitalcard/firebase/card_firebase.dart';
 import 'package:flutter/material.dart';
 
 import '../scan.dart';
@@ -11,6 +13,9 @@ class BookCard extends StatefulWidget {
 
 class _BookCardState extends State<BookCard> {
   ScrollController cardScroll = ScrollController();
+  Map<String, dynamic> myCard = {};
+  DocumentSnapshot? documentId;
+  final scKey = GlobalKey<ScaffoldState>();
   List<Map<String, dynamic>> listOfCard = [
     // {
     //   'uuiId': 'Test9913',
@@ -24,12 +29,12 @@ class _BookCardState extends State<BookCard> {
   @override
   void initState() {
     // TODO: implement initState
-    listOfCard = [
-      {
-        'uuiId': 'Test9912',
-        'image_src': '',
-      },
-    ];
+    // listOfCard = [
+    //   {
+    //     'uuiId': 'Test9912',
+    //     'image_src': '',
+    //   },
+    // ];
     super.initState();
   }
 
@@ -47,6 +52,7 @@ class _BookCardState extends State<BookCard> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: scKey,
       backgroundColor: Colors.grey.shade100,
       body: Padding(
         padding: const EdgeInsets.all(10.0),
@@ -79,56 +85,172 @@ class _BookCardState extends State<BookCard> {
             ),
             SizedBox(height: 10),
             Expanded(
-              child: ListView.builder(
-                  controller: cardScroll,
-                  itemCount: listOfCard.length,
-                  shrinkWrap: true,
-                  itemBuilder: (ctx, i) {
-                    var r = listOfCard[i];
-                    return Container(
-                      height: 200,
-                      margin: EdgeInsets.symmetric(vertical: 5),
-                      width: MediaQuery.of(context).size.width,
-                      decoration: BoxDecoration(
-                        color: Color.fromARGB(255, 233, 225, 225),
-                        borderRadius: BorderRadius.circular(20),
-                        // boxShadow: BoxShadow.lerp(a, b, t)
-                      ),
-                      child: Stack(
-                        children: [
-                          Positioned(
-                            right: 10,
-                            top: 10,
-                            child: IconButton(
-                                onPressed: () {
-                                  setState(() {
-                                    listOfCard.removeAt(i);
-                                  });
-                                },
-                                icon: Icon(
-                                  Icons.delete,
-                                  color: Colors.red,
-                                )),
-                          ),
-                          Align(
-                            child: Column(
-                              // crossAxisAlignment: CrossAxisAlignment.center,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  r['uuiId'],
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+              child: StreamBuilder<QuerySnapshot>(
+                  stream: CardFirebase.getCards(),
+                  builder: (ctx, snap) {
+                    if (snap.hasError) {
+                      return Center(
+                        child: Text(snap.error.toString()),
+                      );
+                    }
+
+                    if (snap.connectionState == ConnectionState.waiting) {
+                      return Text("Loading...");
+                    }
+
+                    if (!snap.hasData) return Text('data not found');
+
+                    var list = snap.data!.docs;
+                    var myCards = list.isNotEmpty
+                        ? list
+                            .map((e) => e.data()! as Map<String, dynamic>)
+                            .first
+                        : null;
+
+                    if (myCards != null) {
+                      documentId = list.first;
+
+                      myCard = myCards;
+                    }
+
+                    List<String> cardIds =
+                        List.from(myCards?['card_refs'] ?? []);
+
+                    return FutureBuilder<List<Map<String, dynamic>>?>(
+                      future: CardFirebase.getCardsbyIds2(cardIds),
+                      builder: (ctx, snapRef) {
+                        if (snapRef.connectionState ==
+                            ConnectionState.waiting) {
+                          return Text("Loading...");
+                        }
+
+                        if (!snapRef.hasData) return Text('data not found');
+
+                        var cardRefs = snapRef.data;
+
+                        return ListView.builder(
+                          controller: cardScroll,
+                          itemCount: (cardRefs?.length ?? 0),
+                          shrinkWrap: true,
+                          itemBuilder: (ctx, i) {
+                            var row = cardRefs![i];
+                            return Container(
+                              margin: EdgeInsets.symmetric(vertical: 5),
+                              width: MediaQuery.of(context).size.width,
+                              // decoration: BoxDecoration(
+                              //   color: Color.fromARGB(255, 233, 225, 225),
+                              //   borderRadius: BorderRadius.circular(20),
+                              //   // boxShadow: BoxShadow.lerp(a, b, t)
+                              // ),
+                              height: 200,
+                              decoration: BoxDecoration(
+                                image: DecorationImage(
+                                  image: AssetImage(
+                                      'assets/theme/${row['theme_id']}'),
+                                  fit: BoxFit.cover,
                                 ),
-                              ],
-                            ),
-                          ),
-                          Text(r['image_src'])
-                        ],
-                      ),
+                              ),
+                              child: Stack(
+                                children: [
+                                  Positioned(
+                                    right: 10,
+                                    top: 10,
+                                    child: IconButton(
+                                        onPressed: () {
+                                          setState(() {
+                                            // listOfCard.removeAt(i);
+                                            var curentRow = documentId!.data()
+                                                as Map<String, dynamic>;
+                                            var r = List.from(
+                                                curentRow['card_refs']);
+                                            r.removeAt(i);
+                                            curentRow['card_refs'] = r;
+                                            CardFirebase.updateCard(
+                                                documentId!, curentRow);
+                                          });
+                                        },
+                                        icon: Icon(
+                                          Icons.delete,
+                                          color: Colors.red,
+                                        )),
+                                  ),
+                                  Align(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          row['theme_id'],
+                                          style: TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Text(row['name'])
+                                ],
+                              ),
+                            );
+                          },
+                        );
+                      },
                     );
+
+                    // var listOfCard = myCards['card_refs'] ?? [];
+
+                    // return ListView.builder(
+                    //   controller: cardScroll,
+                    //   itemCount: listOfCard.length,
+                    //   shrinkWrap: true,
+                    //   itemBuilder: (ctx, i) {
+                    //     var r = listOfCard[i];
+                    //     return Container(
+                    //       height: 200,
+                    //       margin: EdgeInsets.symmetric(vertical: 5),
+                    //       width: MediaQuery.of(context).size.width,
+                    //       decoration: BoxDecoration(
+                    //         color: Color.fromARGB(255, 233, 225, 225),
+                    //         borderRadius: BorderRadius.circular(20),
+                    //         // boxShadow: BoxShadow.lerp(a, b, t)
+                    //       ),
+                    //       child: Stack(
+                    //         children: [
+                    //           // Positioned(
+                    //           //   right: 10,
+                    //           //   top: 10,
+                    //           //   child: IconButton(
+                    //           //       onPressed: () {
+                    //           //         setState(() {
+                    //           //           listOfCard.removeAt(i);
+                    //           //         });
+                    //           //       },
+                    //           //       icon: Icon(
+                    //           //         Icons.delete,
+                    //           //         color: Colors.red,
+                    //           //       )),
+                    //           // ),
+                    //           // Align(
+                    //           //   child: Column(
+                    //           //     mainAxisAlignment: MainAxisAlignment.center,
+                    //           //     children: [
+                    //           //       Text(
+                    //           //         r['uuiId'],
+                    //           //         style: TextStyle(
+                    //           //           fontSize: 20,
+                    //           //           fontWeight: FontWeight.bold,
+                    //           //         ),
+                    //           //       ),
+                    //           //     ],
+                    //           //   ),
+                    //           // ),
+                    //           // Text(r['image_src'])
+                    //         ],
+                    //       ),
+                    //     );
+                    //   },
+                    // );
                   }),
             ),
             SizedBox(height: 20),
@@ -146,6 +268,7 @@ class _BookCardState extends State<BookCard> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
+          // print(myCard);
           Navigator.push(context,
                   MaterialPageRoute(builder: (ctx) => ScanQrBookCardPage()))
               .then((code) {
@@ -161,13 +284,32 @@ class _BookCardState extends State<BookCard> {
             } finally {}
 
             if (scanMap != null && scanMap['type'] == 'card') {
-              print('print add card inapp');
-              listOfCard.add(
-                {
-                  'uuiId': 'Test9912-${DateTime.now().millisecond}',
-                  'image_src': '$code',
-                },
-              );
+              // {"type":"card","userId":"yWKnfdeoyzczx01yrvt6FpyHzkt2","refId":"FJYUdCXlhILejoLWTV5Y"}
+              print('print add card inapp ${scanMap.toString()}');
+              var curentRow = documentId!.data() as Map<String, dynamic>;
+              var listDupId = List.from(curentRow['card_refs']);
+              if (listDupId.contains(scanMap['refId'])) {
+                // scKey.currentState.showSnackBar(snackbar)
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('นามบัตรนี้มีอยู่แล้ว'),
+                    duration: Duration(seconds: 3),
+                  ),
+                );
+                return;
+              }
+
+              curentRow['card_refs'].add(scanMap['refId']);
+              CardFirebase.updateCards(documentId!, curentRow);
+
+              // FieldValue.arrayUnion([scanMap['refId']])
+
+              // listOfCard.add(
+              //   {
+              //     'uuiId': 'Test9912-${DateTime.now().millisecond}',
+              //     'image_src': '$code',
+              //   },
+              // );
               scrollToBottom();
             } else {
               print('other scan');

@@ -72,15 +72,15 @@ class RegisterScreen extends StatelessWidget {
             ),
           ),
           SizedBox(height: size.height * 0.05),
-          Container(
-            alignment: Alignment.center,
-            margin: EdgeInsets.symmetric(horizontal: 40),
-            child: TextFormField(
-              controller: pass,
-              decoration: InputDecoration(labelText: "Image"),
-              obscureText: true,
-            ),
-          ),
+          // Container(
+          //   alignment: Alignment.center,
+          //   margin: EdgeInsets.symmetric(horizontal: 40),
+          //   child: TextFormField(
+          //     controller: pass,
+          //     decoration: InputDecoration(labelText: "Image"),
+          //     obscureText: true,
+          //   ),
+          // ),
           Container(
             alignment: Alignment.centerRight,
             margin: EdgeInsets.symmetric(horizontal: 40, vertical: 10),

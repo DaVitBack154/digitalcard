@@ -18,15 +18,50 @@ class CardFirebase {
           .snapshots();
       // print('response ${res.}');
 
-      // var res2 =
-      //     firestore.collection(collectName).withConverter<Map<String, dynamic>>(
-      //           fromFirestore: (snapshots, _) => snapshots.data()!,
-      //           toFirestore: (movie, _) => movie,
-      //         );
-
-      // var reee =  res2.get();
-
       return res;
+    } catch (e) {
+      print(e);
+      return null;
+    }
+  }
+
+  // static Stream<QuerySnapshot>? getCardsbyIds(List<String> ids) {
+  //   try {
+  //     var auth = FirebaseAuth.instance;
+
+  //     final res = firestore.collection(collectName)
+  //         // .where('uuid', isEqualTo: auth.currentUser!.uid)
+  //         // .where(field)
+  //         // .where(field)
+  //         // .doc()
+  //         .where('id', whereIn: ['FJYUdCXlhILejoLWTV5Y']).snapshots();
+  //     // // print('response ${res.}');
+  //     // var rrr =
+  //     //     firestore.collection(collectName).startAtDocument('FJYUdCXlhILejoLWTV5Y').snapshots()
+
+  //     return res;
+  //   } catch (e) {
+  //     print(e);
+  //     return null;
+  //   }
+  // }
+
+  static Future<List<Map<String, dynamic>>?>? getCardsbyIds2(
+      List<String> ids) async {
+    try {
+      // var auth = FirebaseAuth.instance;
+
+      List<Map<String, dynamic>> listOutput = [];
+
+      for (var id in ids) {
+        var resById = await firestore.collection(collectName).doc(id).get();
+
+        var mapItem = resById.data()!;
+        mapItem['documentId'] = id;
+        listOutput.add(mapItem);
+      }
+
+      return Future.value(listOutput);
     } catch (e) {
       print(e);
       return null;
@@ -63,7 +98,20 @@ class CardFirebase {
     await firestore.collection(collectName).doc(doc.id).update(itemToUpdate);
   }
 
+  static Future<void> updateCards(
+    DocumentSnapshot doc,
+    Map<String, dynamic> itemToUpdate,
+  ) async {
+    await firestore.collection(collectName).doc(doc.id).update(itemToUpdate);
+    // var rrrrrr = await res.get();
+    // await firestore.collection(collectName).doc(doc.id).update(itemToUpdate);
+  }
+
   static Future<void> deleteCard(DocumentSnapshot doc) async {
+    await firestore.collection(collectName).doc(doc.id).delete();
+  }
+
+  static Future<void> deleteCardByDocument(DocumentSnapshot doc) async {
     await firestore.collection(collectName).doc(doc.id).delete();
   }
 }
