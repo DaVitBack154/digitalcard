@@ -59,12 +59,23 @@ class _HomePageState extends State<HomePage> {
               children: [
                 Text(
                   "${auth.currentUser!.displayName}",
-                  style: TextStyle(color: Colors.black, fontSize: 18),
+                  style: TextStyle(
+                    color: Color.fromARGB(255, 11, 65, 12),
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 SizedBox(height: 5),
-                Text(
-                  "Prosition: ${auth.currentUser!.email}",
-                  style: TextStyle(color: Colors.black, fontSize: 14),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Icons.email),
+                    Text(
+                      "${auth.currentUser!.email}",
+                      style: TextStyle(
+                          color: Color.fromARGB(255, 11, 65, 12), fontSize: 14),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -79,31 +90,28 @@ class _HomePageState extends State<HomePage> {
           Profile(),
         ],
       ),
-      bottomNavigationBar: ClipPath(
-        clipper: ShapeBorderClipper(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.only(
-              topRight: Radius.circular(25),
-              topLeft: Radius.circular(25),
-            ),
+      bottomNavigationBar: BottomNavigationBar(
+        fixedColor: Color.fromARGB(255, 232, 100, 29),
+        unselectedItemColor: Color.fromARGB(255, 141, 140, 140),
+        currentIndex: currentTab,
+        // backgroundColor: Color.fromARGB(255, 250, 79, 17),
+        onTap: onTabChange,
+        type: BottomNavigationBarType.fixed,
+        showSelectedLabels: true,
+        items: [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.card_giftcard),
+            label: 'MY-CARD',
           ),
-        ),
-        child: BottomNavigationBar(
-          elevation: 5,
-          // fixedColor: Colors.red,
-          currentIndex: currentTab,
-          backgroundColor: Color.fromARGB(255, 224, 223, 223),
-          onTap: onTabChange,
-          type: BottomNavigationBarType.fixed,
-          showSelectedLabels: true,
-          items: [
-            BottomNavigationBarItem(
-                icon: Icon(Icons.card_giftcard), label: 'MY-CARD'),
-            BottomNavigationBarItem(
-                icon: Icon(Icons.add_card), label: 'BOOKCARD'),
-            BottomNavigationBarItem(icon: Icon(Icons.person), label: 'PROFILE'),
-          ],
-        ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.add_card),
+            label: 'BOOKCARD',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'PROFILE',
+          ),
+        ],
       ),
     );
   }

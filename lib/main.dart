@@ -12,6 +12,10 @@ Future<void> main() async {
 
   await Firebase.initializeApp();
   SystemChannels.textInput.invokeMethod('TextInput.hide');
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitDown,
+    DeviceOrientation.portraitUp,
+  ]);
   runApp(MyApp());
 }
 
@@ -27,7 +31,7 @@ class MyApp extends StatelessWidget {
       title: 'Flutter Login',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primaryColor: Color(0xFF2661FA),
+        primaryColor: Color.fromARGB(255, 244, 125, 35),
         scaffoldBackgroundColor: Colors.white,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),

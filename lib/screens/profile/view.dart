@@ -40,9 +40,13 @@ class VeiwPage extends StatelessWidget {
                     child: Container(
                       width: double.infinity,
                       height: double.infinity,
-                      child: Image.asset(
-                        "assets/theme/${args['theme_id']}",
+                      child: Image.network(
+                        args['public_url'],
+                        fit: BoxFit.cover,
                       ),
+                      // child: Image.asset(
+                      //   "assets/theme/${args['theme_id']}",
+                      // ),
                       // child: Image.network(
                       //   'https://helpx.adobe.com/content/dam/help/en/photoshop/using/convert-color-image-black-white/jcr_content/main-pars/before_and_after/image-before/Landscape-Color.jpg',
                       //   fit: BoxFit.cover,

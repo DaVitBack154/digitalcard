@@ -1,3 +1,6 @@
+import 'dart:developer';
+
+import 'package:digitalcard/common/utill.dart';
 import 'package:digitalcard/firebase/card_firebase.dart';
 import 'package:digitalcard/models/theme_card.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -15,6 +18,8 @@ class TemplateCard extends StatefulWidget {
 class _TemplateCardState extends State<TemplateCard> {
   bool isLoading = false;
   List<ThemeCard> itemThemes = [];
+  List<GlobalKey> listKey = [];
+  Map<String, dynamic>? userProfile;
 
   bool get itemChecked => itemThemes.where((e) => e.isChecked).length > 0;
 
@@ -26,6 +31,7 @@ class _TemplateCardState extends State<TemplateCard> {
       for (var i = 0; i < 4; i++) {
         String prefix = (i + 1).toString();
         itemThemes.add(ThemeCard(id: prefix, name: 'theme-00$prefix.jpg'));
+        listKey.add(GlobalKey());
       }
     } catch (e) {
     } finally {
@@ -35,8 +41,18 @@ class _TemplateCardState extends State<TemplateCard> {
     }
   }
 
+  Future<void> getUserLogin() async {
+    try {
+      var res = await CardFirebase.getProfileInfo();
+      userProfile = res;
+    } catch (e) {
+      print('get profile failed $e');
+    }
+  }
+
   @override
   void initState() {
+    getUserLogin();
     loadData();
     super.initState();
   }
@@ -48,13 +64,20 @@ class _TemplateCardState extends State<TemplateCard> {
 
   @override
   Widget build(BuildContext context) {
+    log(userProfile.toString());
     return Scaffold(
       appBar: AppBar(
-        title: Text("CARD"),
+        backgroundColor: Color(0xffF5591F),
+        title: Text(
+          "Template-Card",
+        ),
       ),
       body: isLoading
           ? Center(
-              child: Text("loding..."),
+              child: Text(
+                "Loding...",
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+              ),
             )
           : Padding(
               padding: const EdgeInsets.all(15),
@@ -77,6 +100,7 @@ class _TemplateCardState extends State<TemplateCard> {
                       shrinkWrap: true,
                       itemBuilder: (ctx, i) {
                         final item = itemThemes[i];
+
                         return GestureDetector(
                           onTap: () {
                             // item.isChecked = !item.isChecked;
@@ -90,16 +114,108 @@ class _TemplateCardState extends State<TemplateCard> {
                           child: Container(
                             margin: EdgeInsets.symmetric(vertical: 10),
                             decoration: BoxDecoration(
-                              // color: Color.fromARGB(255, 243, 33, 173),
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
                                   width: 2,
                                   color: item.isChecked
                                       ? Colors.blue
                                       : Colors.grey.shade200),
-                              image: DecorationImage(
-                                image: AssetImage('assets/theme/${item.name}'),
-                                fit: BoxFit.cover,
+                            ),
+                            child: RepaintBoundary(
+                              key: listKey[i],
+                              child: Container(
+                                padding: const EdgeInsets.all(8.0),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                    width: 2,
+                                    color: Colors.transparent,
+                                  ),
+                                  image: DecorationImage(
+                                    image:
+                                        AssetImage('assets/theme/${item.name}'),
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                                child: Stack(children: [
+                                  Positioned(
+                                    top: 40,
+                                    left: 170,
+                                    child: Column(
+                                      // mainAxisAlignment: MainAxisAlignment.end,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        // Icon(Icons.person),
+                                        Text(
+                                          '${userProfile!['name']}',
+                                          style: TextStyle(
+                                            color:
+                                                Color.fromARGB(255, 1, 92, 90),
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 20,
+                                          ),
+                                        ),
+                                        Text(
+                                          "Programmer",
+                                          style: TextStyle(
+                                            color:
+                                                Color.fromARGB(255, 1, 92, 90),
+                                          ),
+                                        ),
+                                        SizedBox(height: 15),
+                                        Row(
+                                          children: [
+                                            Icon(
+                                              Icons.email,
+                                              color: Color(0xffF5591F),
+                                            ),
+                                            Text(' ${userProfile!['email']}')
+                                          ],
+                                        ),
+                                        SizedBox(height: 3),
+                                        Row(
+                                          children: [
+                                            Icon(
+                                              Icons.phone,
+                                              color: Color(0xffF5591F),
+                                            ),
+                                            Text(' ${userProfile!['phone']}')
+                                          ],
+                                        ),
+                                        SizedBox(height: 3),
+                                        Row(
+                                          children: [
+                                            Icon(
+                                              Icons.web,
+                                              color: Color(0xffF5591F),
+                                            ),
+                                            Text(' chase.co.th')
+                                          ],
+                                        ),
+
+                                        // Icon(Icons.email),
+                                        // Text(
+                                        //   ': ${userProfile!['email']}',
+                                        //   style: TextStyle(
+                                        //     color: Colors.black87,
+                                        //     fontWeight: FontWeight.bold,
+                                        //     fontSize: 18,
+                                        //   ),
+                                        // ),
+                                        // Icon(Icons.phone),
+                                        // Text(
+                                        //   ': ${userProfile!['phone']}',
+                                        //   style: TextStyle(
+                                        //     color: Colors.black87,
+                                        //     fontWeight: FontWeight.bold,
+                                        //     fontSize: 18,
+                                        //   ),
+                                        // ),
+                                      ],
+                                    ),
+                                  ),
+                                ]),
                               ),
                             ),
                             height: 200,
@@ -118,7 +234,7 @@ class _TemplateCardState extends State<TemplateCard> {
         margin: EdgeInsets.symmetric(horizontal: 10),
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(
-            primary: Colors.green.shade400,
+            primary: Color(0xffF5591F),
             padding: EdgeInsets.all(10),
           ),
           onPressed: itemChecked
@@ -126,7 +242,17 @@ class _TemplateCardState extends State<TemplateCard> {
                   var getTheme =
                       itemThemes.firstWhereOrNull((d) => d.isChecked);
 
+                  var getIndex = itemThemes.indexWhere((e) => e.isChecked);
+
                   FirebaseAuth auth = FirebaseAuth.instance;
+
+                  var fileCapture =
+                      await Utils.captureImagePostition(key: listKey[getIndex]);
+
+                  print(fileCapture);
+                  var upload = await Utils.uploadFileToStorage(fileCapture);
+
+                  var getImageUrl = await Utils.dowloadUrl(upload!);
 
                   await CardFirebase.addCard({
                     'name': auth.currentUser!.displayName,
@@ -134,13 +260,17 @@ class _TemplateCardState extends State<TemplateCard> {
                     'uuid': auth.currentUser!.uid,
                     'card_refs': [],
                     'theme_id': getTheme!.name,
+                    'public_url': getImageUrl,
                   });
                   Navigator.pop(context);
 
                   print('use this theme');
                 }
               : null,
-          child: Text('Use theme'),
+          child: Text(
+            'Use theme',
+            style: TextStyle(fontSize: 15),
+          ),
         ),
       ),
     );

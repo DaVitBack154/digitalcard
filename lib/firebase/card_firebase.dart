@@ -8,10 +8,10 @@ class CardFirebase {
 
   static FirebaseFirestore get firestore => FirebaseFirestore.instance;
 
+  static FirebaseAuth get auth => FirebaseAuth.instance;
+
   static Stream<QuerySnapshot>? getCards() {
     try {
-      var auth = FirebaseAuth.instance;
-
       final res = firestore
           .collection(collectName)
           .where('uuid', isEqualTo: auth.currentUser!.uid)
@@ -23,6 +23,14 @@ class CardFirebase {
       print(e);
       return null;
     }
+  }
+
+  static Future<Map<String, dynamic>?> getProfileInfo() async {
+    return (await firestore
+            .collection('members')
+            .doc(auth.currentUser!.uid)
+            .get())
+        .data();
   }
 
   // static Stream<QuerySnapshot>? getCardsbyIds(List<String> ids) {
